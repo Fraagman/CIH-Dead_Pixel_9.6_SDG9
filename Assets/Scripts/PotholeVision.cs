@@ -18,6 +18,14 @@ public class PotholeVision : MonoBehaviour
     public Color detectingColor = Color.red;
     public Color lockedColor = Color.green;
 
+    void Start()
+    {
+        if (roadLayer == 0)
+        {
+             Debug.LogWarning("PotholeVision: Road Layer is not set! Please check the Inspector.");
+        }
+    }
+
     void Update()
     {
         if (reticleImage == null) return;

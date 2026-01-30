@@ -48,6 +48,18 @@ public class MarkerSpawner : MonoBehaviour
             GameObject marker = Instantiate(markerPrefab, transform);
             marker.transform.localPosition = position;
             marker.name = $"Marker_{report.id}";
+            
+            // Colorize based on status
+            var renderer = marker.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                if (report.status == "fixed" || report.status == "repaired")
+                    renderer.material.color = Color.green;
+                else if (report.status == "in-progress")
+                    renderer.material.color = Color.yellow;
+                else
+                    renderer.material.color = Color.red; // Pending
+            }
         }
 
         Debug.Log($"Spawned {transform.childCount} markers.");
