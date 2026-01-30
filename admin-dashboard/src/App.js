@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import { supabase } from './supabaseClient';
+import { Unity, useUnityContext } from "react-unity-webgl";
 import {
   PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -10,6 +11,14 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [lastSync, setLastSync] = useState(null);
+
+  // Unity Context
+  const { unityProvider } = useUnityContext({
+    loaderUrl: "unity-build/Build/unity-build.loader.js",
+    dataUrl: "unity-build/Build/unity-build.data",
+    frameworkUrl: "unity-build/Build/unity-build.framework.js",
+    codeUrl: "unity-build/Build/unity-build.wasm",
+  });
 
   useEffect(() => {
     fetchInitialData();
@@ -255,23 +264,11 @@ function App() {
           </div>
 
           <div className="mini-map-container card">
-            {selectedLocation ? (
-              <>
-                <iframe
-                  title="Live Map"
-                  className="map-frame"
-                  src={`https://maps.google.com/maps?q=${selectedLocation.lat},${selectedLocation.lng}&z=16&output=embed`}
-                ></iframe>
-                <div style={{ padding: '12px', textAlign: 'center', fontSize: '0.8rem', color: '#94a3b8' }}>
-                  Viewing Report #{selectedLocation.id}
-                </div>
-              </>
-            ) : (
-              <div className="empty-state">
-                <span className="empty-icon">🗺️</span>
-                <p>Select a report to view location.</p>
-              </div>
-            )}
+            <h3>Digital Twin Live View</h3>
+            <div className="unity-wrapper" style={{ flex: 1, minHeight: '300px', position: 'relative', overflow: 'hidden', borderRadius: '8px', background: '#000' }}>
+              <Unity unityProvider={unityProvider} style={{ width: '100%', height: '100%' }} />
+            </div>
+            <p className="map-hint">Warning: Use WASD to fly around the city!</p>
           </div>
         </section>
       </main>

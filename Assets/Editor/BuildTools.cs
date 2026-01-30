@@ -61,4 +61,49 @@ public class BuildTools
             Debug.LogError($"❌ Build Failed: {summary.totalErrors} errors.");
         }
     }
+    [MenuItem("TrafficCity/Build WebGL (For React)")]
+    public static void BuildWebGL()
+    {
+        // 1. Configure WebGL Settings
+        PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled; // Crucial for localhost
+        PlayerSettings.WebGL.decompressionFallback = true;
+        PlayerSettings.WebGL.nameFilesAsShaders = true;
+        
+        // 2. Build Options
+        // Output directly to React's public folder
+        string projectRoot = System.IO.Path.GetDirectoryName(Application.dataPath);
+        string buildPath = System.IO.Path.Combine(projectRoot, "admin-dashboard", "public", "unity-build");
+
+        BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
+        buildPlayerOptions.scenes = new[] { "Assets/Scenes/SampleScene.unity" }; 
+        
+        if (EditorBuildSettings.scenes.Length > 0)
+        {
+             System.Collections.Generic.List<string> enabledScenes = new System.Collections.Generic.List<string>();
+             foreach(var scene in EditorBuildSettings.scenes)
+             {
+                 if (scene.enabled) enabledScenes.Add(scene.path);
+             }
+             buildPlayerOptions.scenes = enabledScenes.ToArray();
+        }
+
+        buildPlayerOptions.locationPathName = buildPath;
+        buildPlayerOptions.target = BuildTarget.WebGL;
+        buildPlayerOptions.options = BuildOptions.None;
+
+        Debug.Log($"🚀 Building WebGL to: {buildPath}...");
+
+        BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
+        BuildSummary summary = report.summary;
+
+        if (summary.result == BuildResult.Succeeded)
+        {
+            Debug.Log($"✅ WebGL Build Succeeded: {summary.totalSize / 1024 / 1024} MB");
+        }
+        else if (summary.result == BuildResult.Failed)
+        {
+            Debug.LogError($"❌ WebGL Build Failed: {summary.totalErrors} errors.");
+        }
+    }
 }
