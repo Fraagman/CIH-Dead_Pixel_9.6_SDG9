@@ -1,6 +1,5 @@
 
-# User requested ignore
-My project1/
+
 
 # Unity
 /[Ll]ibrary/
@@ -10,6 +9,17 @@ My project1/
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# My project1 (Unity Exclusions)
+My project1/[Ll]ibrary/
+My project1/[Tt]emp/
+My project1/[Oo]bj/
+My project1/[Bb]uild/
+My project1/[Bb]uilds/
+My project1/[Ll]ogs/
+My project1/[Uu]ser[Ss]ettings/
 
 # React
 node_modules/
