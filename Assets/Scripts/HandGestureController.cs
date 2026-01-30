@@ -51,8 +51,8 @@ public class HandGestureController : MonoBehaviour
 
     void Update()
     {
-        // 1. Editor Fallback
-        if (Input.GetKeyDown(KeyCode.Space))
+        // 1. Editor & Mobile Fallback (Spacebar OR Touch)
+        if (Input.GetKeyDown(KeyCode.Space) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
         {
             TrySubmitReport();
         }
