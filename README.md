@@ -14,6 +14,21 @@ This repository contains the full source code for the "Dead Pixel" submission. I
     *   Build the APK: `TrafficCity -> Build Android APK`.
     *   Install `CityWatchAR.apk` on an Android phone.
 
+    ❌ Missing 3D Files Detected
+
+The error Unexpected token '<' happens because the Unity Build is missing. The website is looking for the 3D City but finding nothing, so it crashes.
+
+You MUST do this to fix it:
+
+Open Unity.
+Look at the top menu bar.
+Click TrafficCity -> Build WebGL (For React).
+WAIT. It will take 2-4 minutes.
+Once the Unity log says "✅ WebGL Build Succeeded", go back to your browser and Refresh.
+Visual Check: Go to your folder: admin-dashboard/public. You should see a folder called unity-build. If that folder is empty, the website will never work.
+
+Please run the build now.
+
 ## 2. The Admin Dashboard (Web)
 *   **Folder:** `admin-dashboard/`
 *   **Purpose:** Runs in a web browser. Receives live data from the Field App and shows analytics.
