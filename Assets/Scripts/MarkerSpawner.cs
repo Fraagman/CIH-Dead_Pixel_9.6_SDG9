@@ -12,7 +12,7 @@ public class MarkerSpawner : MonoBehaviour
     public float originLng;
     public float scale = 111319.9f; // Meters per degree roughly at equator
 
-    // Note: For Cesium/ArcGIS, use their specific Georeference components instead of this manual math.
+    // Note: For the final AR Field App, we will align the Unity Origin with the real-world AR starting point
 
     [ContextMenu("Spawn Markers")]
     public void SpawnMarkers()

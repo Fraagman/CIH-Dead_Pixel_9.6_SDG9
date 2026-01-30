@@ -7,7 +7,7 @@ public class RealTimeSync : MonoBehaviour
     public MarkerSpawner markerSpawner;
     
     public float updateInterval = 10f;
-    public bool enableLiveUpdates = true;
+    public bool isLive = true;
 
     void Start()
     {
@@ -24,12 +24,15 @@ public class RealTimeSync : MonoBehaviour
     {
         while (true)
         {
-            if (enableLiveUpdates)
+            if (isLive)
             {
+                Debug.Log("Syncing Digital Twin with Supabase...");
+
                 // Trigger fetch
                 dataManager.FetchNow();
 
                 // Wait for fetch to complete
+                // Using the boolean we added to DataManager is cleaner than hardcoded wait
                 yield return new WaitUntil(() => dataManager.isFetching == false);
 
                 // Update markers

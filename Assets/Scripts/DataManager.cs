@@ -90,4 +90,42 @@ public class DataManager : MonoBehaviour
         }
         isFetching = false;
     }
+
+    public void PostReport(string type, float lat, float lng, string status)
+    {
+        StartCoroutine(SendPostRequest(type, lat, lng, status));
+    }
+
+    IEnumerator SendPostRequest(string type, float lat, float lng, string status)
+    {
+        string url = supabaseUrl + "/rest/v1/reports";
+        // Simple JSON construction to avoid a whole new class for one-off send
+        string jsonPayload = $"{{\"type\": \"{type}\", \"lat\": {lat}, \"lng\": {lng}, \"status\": \"{status}\"}}";
+
+        using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
+        {
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
+            www.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            www.downloadHandler = new DownloadHandlerBuffer();
+
+            www.SetRequestHeader("Content-Type", "application/json");
+            www.SetRequestHeader("apikey", supabaseKey);
+            www.SetRequestHeader("Authorization", "Bearer " + supabaseKey);
+
+            // Debug.Log($"Posting new report to {url}...");
+
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError($"PostReport Error: {www.error} - {www.downloadHandler.text}");
+            }
+            else
+            {
+                Debug.Log($"PostReport Success: {www.responseCode} - {www.downloadHandler.text}");
+                // Optional: Auto-fetch to show new item immediately
+                // FetchNow(); 
+            }
+        }
+    }
 }
