@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
 import { supabase } from './supabaseClient';
-import { Unity, useUnityContext } from "react-unity-webgl";
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -12,13 +13,97 @@ function App() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [lastSync, setLastSync] = useState(null);
 
-  // Unity Context
-  const { unityProvider } = useUnityContext({
-    loaderUrl: "unity-build/Build/unity-build.loader.js",
-    dataUrl: "unity-build/Build/unity-build.data",
-    frameworkUrl: "unity-build/Build/unity-build.framework.js",
-    codeUrl: "unity-build/Build/unity-build.wasm",
-  });
+  // Map References
+  const mapContainer = useRef(null);
+  const mapCallback = useRef(null);
+  const markersRef = useRef({});
+
+  // Initialize Map
+  useEffect(() => {
+    if (mapCallback.current) return; // Initialize only once
+
+    const map = new maplibregl.Map({
+      container: mapContainer.current,
+      style: 'https://tiles.openfreemap.org/styles/liberty',
+      center: [79.0882, 21.1458],
+      zoom: 15,
+      pitch: 50,
+      bearing: -10
+    });
+
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+    mapCallback.current = map;
+
+    return () => {
+      // Cleanup map on unmount
+      if (mapCallback.current) {
+        mapCallback.current.remove();
+        mapCallback.current = null;
+      }
+    };
+  }, []);
+
+  // Sync Markers with Map
+  useEffect(() => {
+    if (!mapCallback.current) return;
+    const map = mapCallback.current;
+
+    // Clear old markers that are gone
+    Object.keys(markersRef.current).forEach((id) => {
+      if (!reports.find(r => r.id === parseInt(id))) {
+        markersRef.current[id].remove();
+        delete markersRef.current[id];
+      }
+    });
+
+    // Add/Update markers
+    reports.forEach(report => {
+      if (!markersRef.current[report.id]) {
+        // Create DOM element for marker
+        const el = document.createElement('div');
+        el.className = `map-marker ${report.status}`;
+        el.style.fontSize = '24px';
+        el.style.cursor = 'pointer';
+        el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))';
+        // el.innerText = report.status === 'fixed' || report.status === 'repaired' ? '🟢' : report.status === 'in-progress' ? '🟡' : '🔴';
+        el.innerHTML = report.status === 'fixed' || report.status === 'repaired' ? '🟢' : report.status === 'in-progress' ? '🟡' : '🔴';
+
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setSelectedLocation(report);
+        });
+
+        // Add to map
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat([report.lng, report.lat])
+          .addTo(map);
+
+        markersRef.current[report.id] = marker;
+      } else {
+        // Update position if needed (usually reports don't move, but good practice)
+        markersRef.current[report.id].setLngLat([report.lng, report.lat]);
+
+        // Update icon/class if status changed
+        const el = markersRef.current[report.id].getElement();
+        el.className = `map-marker ${report.status}`;
+        el.innerHTML = report.status === 'fixed' || report.status === 'repaired' ? '🟢' : report.status === 'in-progress' ? '🟡' : '🔴';
+      }
+    });
+
+  }, [reports]);
+
+  // Fly to selected location
+  useEffect(() => {
+    if (selectedLocation && mapCallback.current) {
+      mapCallback.current.flyTo({
+        center: [selectedLocation.lng, selectedLocation.lat],
+        zoom: 17,
+        pitch: 60,
+        essential: true
+      });
+    }
+  }, [selectedLocation]);
+
 
   useEffect(() => {
     fetchInitialData();
@@ -264,11 +349,13 @@ function App() {
           </div>
 
           <div className="mini-map-container card">
-            <h3>Digital Twin Live View</h3>
-            <div className="unity-wrapper" style={{ flex: 1, minHeight: '300px', position: 'relative', overflow: 'hidden', borderRadius: '8px', background: '#000' }}>
-              <Unity unityProvider={unityProvider} style={{ width: '100%', height: '100%' }} />
+            <h3>Live 3D City Map (Free)</h3>
+            <div style={{ flex: 1, minHeight: '350px', position: 'relative', borderRadius: '8px', overflow: 'hidden' }}>
+              <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
             </div>
-            <p className="map-hint">Warning: Use WASD to fly around the city!</p>
+            <p className="map-hint" style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '8px' }}>
+              Powered by <b>OpenFreeMap</b> (No Credit Card Required).
+            </p>
           </div>
         </section>
       </main>
